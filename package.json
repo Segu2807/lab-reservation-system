@@ -21,6 +21,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "body-parser": "^2.2.1"
+  }
 }
-
