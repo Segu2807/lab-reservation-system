@@ -1,0 +1,585 @@
+version: '3.9'
+
+services:
+  # ==================== API GATEWAY ====================
+  api-gateway:
+    build:
+      context: ./infra/gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
+      - lab-service
+      - reservation-service
+      - availability-service
+      - approval-service
+      - audit-service
+      - notification-service
+      - report-service
+    networks:
+      - lab-network
+  # ==================== FRONTEND (NEXT.JS) ====================
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/web-app/Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - lab-network
+
+  # ==================== DATABASES PRINCIPALES ====================
+  postgres-user:
+    image: postgres:15-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-lab:
+    image: postgres:15-alpine
+    container_name: postgres-lab
+    environment:
+      POSTGRES_DB: lab_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-lab-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-reservation:
+    image: postgres:15-alpine
+    container_name: postgres-reservation
+    environment:
+      POSTGRES_DB: reservation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-reservation-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-approval:
+    image: postgres:15-alpine
+    container_name: postgres-approval
+    environment:
+      POSTGRES_DB: approval_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-approval-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-availability:
+    image: postgres:15-alpine
+    container_name: postgres-availability
+    environment:
+      POSTGRES_DB: availability_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres-availability-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-report:
+    image: postgres:15-alpine
+    container_name: postgres-report
+    environment:
+      POSTGRES_DB: report_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres-report-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-backup:
+    image: postgres:15-alpine
+    container_name: postgres-backup
+    environment:
+      POSTGRES_DB: backup_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres-backup-data:/var/lib/postgresql/data
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MONGODB INSTANCES ====================
+  mongodb-audit:
+    image: mongo:6
+    container_name: mongodb-audit
+    environment:
+      MONGO_INITDB_DATABASE: audit_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-audit-data:/data/db
+    networks:
+      - lab-network
+    command: mongod --quiet --logpath /dev/null
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb-approval:
+    image: mongo:6
+    container_name: mongodb-approval
+    environment:
+      MONGO_INITDB_DATABASE: approval_logs
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-approval-data:/data/db
+    networks:
+      - lab-network
+    command: mongod --quiet --logpath /dev/null
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb-backup:
+    image: mongo:6
+    container_name: mongodb-backup
+    environment:
+      MONGO_INITDB_DATABASE: backup_db
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb-backup-data:/data/db
+    networks:
+      - lab-network
+    command: mongod --quiet --logpath /dev/null
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== CACHE & MESSAGE BROKER ====================
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-cache-data:/data
+    networks:
+      - lab-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper:2888:3888
+    mem_limit: 512m
+    ports:
+      - "2181:2181"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    mem_limit: 1g
+    ports:
+      - "9092:9092"
+    networks:
+      - lab-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 40s
+
+  # ==================== OBJECT STORAGE (Para backups) ====================
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - lab-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ==================== MICROSERVICES ====================
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-user
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: user_db
+      REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
+    networks:
+      - lab-network
+
+  lab-service:
+    build:
+      context: ./services/lab-service
+      dockerfile: Dockerfile
+    container_name: lab-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres-lab:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-lab
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: lab_db
+      REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - lab-network
+
+  reservation-service:
+    build:
+      context: ./services/reservation-service
+      dockerfile: Dockerfile
+    container_name: reservation-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres-reservation:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-reservation
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: reservation_db
+      KAFKA_BROKER: kafka:9092
+      REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
+    networks:
+      - lab-network
+
+  availability-service:
+    build:
+      context: ./services/availability-service
+      dockerfile: Dockerfile
+    container_name: availability-service
+    ports:
+      - "3004:3004"
+    depends_on:
+      postgres-availability:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-availability
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: availability_db
+      REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - lab-network
+
+  approval-service:
+    build:
+      context: ./services/approval-service
+      dockerfile: Dockerfile
+    container_name: approval-service
+    ports:
+      - "3005:3005"
+    depends_on:
+      postgres-approval:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-approval
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: approval_db
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - lab-network
+
+  audit-service:
+    build:
+      context: ./services/audit-service
+      dockerfile: Dockerfile
+    container_name: audit-service
+    ports:
+      - "3006:3006"
+    depends_on:
+      mongodb-audit:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGO_HOST: mongodb-audit
+      MONGO_PORT: 27017
+      MONGO_DB: audit_db
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - lab-network
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "3007:3007"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER: kafka:9092
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: ${EMAIL_USER:-test@example.com}
+      EMAIL_PASS: ${EMAIL_PASS:-password}
+    networks:
+      - lab-network
+
+  report-service:
+    build:
+      context: ./services/report-service
+      dockerfile: Dockerfile
+    container_name: report-service
+    ports:
+      - "3008:3008"
+    depends_on:
+      postgres-report:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-report
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: report_db
+      KAFKA_BROKER: kafka:9092
+    networks:
+      - lab-network
+
+networks:
+  lab-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+auth-service:
+  build:
+    context: ./services/auth-service
+    dockerfile: Dockerfile
+  container_name: auth-service
+  ports:
+    - "3009:3009"
+  depends_on:
+    postgres-auth:
+      condition: service_healthy
+  environment:
+    DB_HOST: postgres-auth
+    DB_USER: postgres
+    DB_PASS: postgres
+    DB_NAME: auth_db
+    JWT_SECRET: supersecret
+  networks:
+    - lab-network
+
+backup-service:
+  build: services/backup-service
+  volumes:
+    - ./backups:/data/backups
+  environment:
+    DB_URL: postgres://user:pass@postgres:5432/db
+    S3_BUCKET: backups
+    dockerfile: Dockerfile
+  container_name: backup-service
+  ports:
+    - "3010:3010"
+  depends_on:
+    postgres-user:
+      condition: service_healthy
+    mongodb-backup:
+      condition: service_healthy
+    minio:
+      condition: service_healthy
+  networks:
+    - lab-network
+
+volumes:
+  # PostgreSQL volumes
+  postgres-user-data:
+  postgres-lab-data:
+  postgres-reservation-data:
+  postgres-approval-data:
+  postgres-auth-data:
+  postgres-availability-data:
+  postgres-report-data:
+  postgres-backup-data:
+  
+  # MongoDB volumes
+  mongodb-audit-data:
+  mongodb-approval-data:
+  mongodb-backup-data:
+  
+  # Redis volume
+  redis-cache-data:
+  
+  # MinIO volume
+  minio-data:

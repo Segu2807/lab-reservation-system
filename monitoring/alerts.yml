@@ -1,0 +1,20 @@
+groups:
+- name: microservices-alerts
+  rules:
+  - alert: HighCPUUsage
+    expr: process_cpu_seconds_total > 0.8
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: CPU alta en microservicio
+      description: El uso de CPU superó el 80% durante 1 minuto
+
+  - alert: HighHttpErrorRate
+    expr: rate(http_requests_total{status=~"5.."}[1m]) > 0.1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: Errores HTTP elevados
+      description: Se detectó un alto número de errores 5xx

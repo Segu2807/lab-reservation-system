@@ -1,23 +1,13 @@
-# Imagen base
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de dependencias
-COPY package*.json ./
-
-# Instalar dependencias
+COPY package.json tsconfig.json ./
 RUN npm install
 
-# Copiar el resto del código
-COPY . .
-
-# Compilar el proyecto
+COPY src ./src
 RUN npm run build
 
-# Exponer puerto
-EXPOSE 3000
+EXPOSE 3009
 
-# Comando de inicio
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@lab/api-client": ["packages/api-client/src"]
+    }
+  }
+}

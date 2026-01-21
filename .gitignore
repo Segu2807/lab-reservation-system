@@ -36,3 +36,26 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Node
+node_modules/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.crash.log
+terraform.tfvars
+
+# Logs
+npm-debug.log*
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+
+# Env files
+.env
+.env.*
