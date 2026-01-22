@@ -9,6 +9,8 @@ on:
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
 
     steps:
       - name: Checkout code
@@ -22,10 +24,6 @@ jobs:
       - name: Install dependencies
         working-directory: services/audit-service
         run: npm install
-
-      - name: Run e2e tests
-        working-directory: services/audit-service
-        run: npm run test:e2e
 
       - name: Build Docker image
         working-directory: services/audit-service

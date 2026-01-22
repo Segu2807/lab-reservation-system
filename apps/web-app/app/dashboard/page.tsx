@@ -1,14 +1,23 @@
 "use client";
-import { jwtDecode } from "jwt-decode";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getUserFromToken, JwtUser } from "@/src/lib/auth";
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+  const [user, setUser] = useState<JwtUser | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) setUser(jwtDecode(token));
-  }, []);
+    const u = getUserFromToken();
+
+    if (!u) {
+      router.push("/login");
+      return;
+    }
+
+    setUser(u);
+  }, [router]);
 
   if (!user) return <p>Cargando...</p>;
 
@@ -20,9 +29,17 @@ export default function Dashboard() {
         <a href="/labs">Laboratorios</a> |{" "}
         <a href="/availability">Disponibilidad</a> |{" "}
         <a href="/reservations">Reservas</a>
+
+        {user.role === "ADMIN" && (
+          <>
+            {" | "}
+            <a href="/admin">Panel Admin</a>
+          </>
+        )}
       </nav>
     </main>
   );
 }
+
 
 

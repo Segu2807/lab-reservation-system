@@ -1,3 +1,261 @@
+🧪 Sistema de Reservación de Laboratorios – Ingeniería Civil
+📌 Descripción General
+
+Este proyecto implementa un Sistema Web de Reservación de Laboratorios para la carrera de Ingeniería Civil, desarrollado bajo una arquitectura de microservicios, utilizando Docker, Docker Compose, Next.js, Node.js, Kafka, PostgreSQL, MongoDB, Redis, y desplegado sobre AWS Academy usando Terraform (Infraestructura como Código).
+
+El sistema permite:
+
+Gestión de usuarios y roles
+
+Creación y administración de laboratorios
+
+Consulta de disponibilidad
+
+Reservas de laboratorios
+
+Flujo de aprobación
+
+Auditoría de eventos
+
+Reportes
+
+Notificaciones
+
+Backups
+
+🏗️ Arquitectura General
+🔹 Arquitectura lógica
+
+Frontend: Next.js (React)
+
+Backend: Microservicios Node.js (Express)
+
+Comunicación:
+
+HTTP REST (Frontend → API Gateway → Microservicios)
+
+Eventos asincrónicos con Kafka
+
+Persistencia:
+
+PostgreSQL (servicios core)
+
+MongoDB (auditoría, logs, backups)
+
+Redis (cache)
+
+Infraestructura:
+
+AWS EC2
+
+Application Load Balancer (ALB)
+
+Bastion Host
+
+VPC + Subnets
+
+API Gateway
+
+Orquestación: Docker Compose
+
+IaC: Terraform
+
+📁 Estructura del Proyecto (Monorepo)
+lab-reservation-system
+│
+├── apps/
+│   └── web-app/                 # Frontend Next.js
+│
+├── services/                    # Microservicios
+│   ├── auth-service
+│   ├── user-service
+│   ├── lab-service
+│   ├── reservation-service
+│   ├── availability-service
+│   ├── approval-service
+│   ├── audit-service
+│   ├── notification-service
+│   ├── report-service
+│   └── backup-service
+│
+├── infra/
+│   ├── terraform/               # Infraestructura AWS (IaC)
+│   ├── gateway/                 # API Gateway custom (Docker)
+│   ├── nginx/                   # Reverse proxy (opcional)
+│   └── automation/
+│
+├── docker-compose.yml            # Orquestación completa local / EC2
+├── turbo.json                    # Turborepo
+├── package.json
+└── README.md
+
+🧩 Microservicios Implementados
+Servicio	Puerto	Base de Datos	Función
+auth-service	3009	PostgreSQL	Autenticación (JWT)
+user-service	3001	PostgreSQL + Redis	Gestión de usuarios
+lab-service	3002	PostgreSQL + Redis	Gestión de laboratorios
+reservation-service	3003	PostgreSQL	Reservas
+availability-service	3004	PostgreSQL	Disponibilidad
+approval-service	3005	PostgreSQL + MongoDB	Aprobaciones
+audit-service	3006	MongoDB	Auditoría
+notification-service	3007	Kafka	Notificaciones
+report-service	3008	PostgreSQL	Reportes
+backup-service	3010	PostgreSQL + MongoDB + MinIO	Backups
+🖥️ Frontend (Next.js)
+
+El frontend está desarrollado con Next.js (App Router) y se conecta a los microservicios mediante el API Gateway.
+
+Rutas implementadas:
+Ruta	Función
+/	Home
+/login	Login
+/dashboard	Panel principal
+/labs	Listado de laboratorios
+/labs/create	Crear laboratorio
+/availability	Consultar disponibilidad
+/reservations	Ver reservas
+/reservations/create	Crear reserva
+/approvals	Aprobaciones
+/users	Gestión de usuarios
+/notifications	Notificaciones
+/reports	Reportes
+/audits	Auditoría
+🐳 Docker y Docker Compose
+
+Todos los servicios se ejecutan mediante Docker y se orquestan con docker-compose.
+
+Servicios incluidos en docker-compose:
+
+Frontend
+
+API Gateway
+
+Todos los microservicios
+
+PostgreSQL (múltiples instancias)
+
+MongoDB
+
+Redis
+
+Kafka + Zookeeper
+
+MinIO
+
+Levantar todo localmente:
+docker-compose up -d
+
+☁️ Infraestructura en AWS (Terraform)
+
+La infraestructura se despliega completamente con Terraform, cumpliendo los requisitos de AWS Academy.
+
+Componentes creados:
+
+VPC
+
+Subnets públicas y privadas
+
+Internet Gateway
+
+Security Groups
+
+Bastion Host (acceso seguro)
+
+EC2 privada (Docker + Microservicios)
+
+Application Load Balancer
+
+API Gateway
+
+Outputs automáticos
+
+Despliegue:
+terraform init
+terraform apply
+
+🔐 Seguridad
+
+EC2 privada sin acceso directo a Internet
+
+Bastion Host para acceso SSH
+
+Security Groups controlados
+
+JWT para autenticación
+
+Separación de redes (VPC)
+
+🔄 Flujo de Comunicación
+Usuario
+ → Frontend (Next.js)
+ → API Gateway
+ → Application Load Balancer
+ → EC2 privada (Docker)
+ → Microservicios
+ → Bases de Datos
+
+📦 Backups
+
+El backup-service:
+
+Genera dumps de PostgreSQL
+
+Guarda metadata en MongoDB
+
+Sube archivos a MinIO (S3 compatible)
+
+Ejecutable vía endpoint REST
+
+📊 Observabilidad
+
+Auditoría centralizada (MongoDB)
+
+Logs por microservicio
+
+Eventos con Kafka
+
+🧪 Pruebas
+Ver servicios activos:
+docker ps
+
+Probar API:
+curl http://ALB_DNS/labs
+
+🎓 Contexto Académico
+
+## CI/CD Strategy
+
+This project uses GitHub Actions for Continuous Integration.
+Each microservice has its own CI pipeline that:
+
+- Installs dependencies
+- Runs tests
+- Builds Docker image
+- Pushes image to Docker Hub
+
+Due to AWS Academy restrictions, Continuous Deployment is performed manually on EC2 instances using Docker and documented deployment scripts. Infrastructure is defined using Terraform.
+
+This approach follows DevOps best practices while respecting the limitations of the academic environment.
+
+Proyecto desarrollado para la asignatura Distribuida / Arquitectura de Software / DevOps, aplicando:
+
+Microservicios
+
+Infraestructura como Código
+
+Contenedores
+
+Cloud Computing
+
+Buenas prácticas profesionales
+
+👨‍💻 Autor
+
+Nombre: Segundo Tipanquiza
+Carrera: Ingeniería en Sistemas
+Universidad: (completar)
+Año: 2026
+
 # Turborepo starter
 
 This Turborepo starter is maintained by the Turborepo core team.

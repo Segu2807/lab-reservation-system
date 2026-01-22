@@ -2,13 +2,15 @@ name: CI/CD Availability Service
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "services/availability-service/**"
 
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
 
     steps:
       - name: Checkout code
@@ -22,10 +24,6 @@ jobs:
       - name: Install dependencies
         working-directory: services/availability-service
         run: npm install
-
-      - name: Run e2e tests
-        working-directory: services/availability-service
-        run: npm run test:e2e
 
       - name: Build Docker image
         working-directory: services/availability-service

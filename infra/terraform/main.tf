@@ -1,3 +1,18 @@
+locals {
+  services = {
+    lab          = 3000
+    auth         = 3001
+    user         = 3002
+    reservation  = 3003
+    approval     = 3004
+    audit        = 3005
+    availability = 3006
+    backup       = 3007
+    notification = 3008
+    report       = 3009
+  }
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -70,11 +85,11 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  from_port       = 22
+  to_port         = 22
+  protocol        = "tcp"
+  security_groups = [aws_security_group.bastion_sg.id]
+}
 
   egress {
     from_port   = 0
@@ -92,8 +107,9 @@ resource "aws_lb" "alb" {
     aws_subnet.public_b.id
   ]
 }
-resource "aws_lb_target_group" "lab_tg" {
-  name     = "lab-service-tg"
+resource "aws_lb_target_group" "tg" {
+  for_each = local.services
+  name     = "${each.key}-tg"
   port     = 3000
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
@@ -118,25 +134,28 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-resource "aws_lb_listener_rule" "labs_rule" {
+resource "aws_lb_listener_rule" "rules" {
+  for_each     = local.services
   listener_arn = aws_lb_listener.http.arn
-  priority     = 10
+  priority     = 10 + index(keys(local.services), each.key)
 
   condition {
     path_pattern {
-      values = ["/labs*"]
+      values = ["/${each.key}*"]
     }
   }
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.lab_tg.arn
+    target_group_arn = aws_lb_target_group.tg[each.key].arn
   }
 }
-resource "aws_launch_template" "lab_lt" {
-  image_id      = var.ami_id
-  instance_type = "t2.micro"
 
+resource "aws_launch_template" "lt" {
+  for_each       = local.services
+  name_prefix    = "${each.key}-lt-"
+  image_id       = var.ami_id
+  instance_type  = "t2.micro"
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
   user_data = base64encode(<<EOF
@@ -144,11 +163,13 @@ resource "aws_launch_template" "lab_lt" {
 yum update -y
 amazon-linux-extras install docker -y
 systemctl start docker
-docker run -d -p 3000:3000 tuusuario/lab-service:latest
+docker run -d -p ${each.value}:3000 segu2807/${each.key}-service:latest
 EOF
-)
+  )
 }
-resource "aws_autoscaling_group" "lab_asg" {
+
+resource "aws_autoscaling_group" "asg" {
+  for_each = local.services
   desired_capacity = 1
   max_size         = 2
   min_size         = 1
@@ -158,13 +179,14 @@ resource "aws_autoscaling_group" "lab_asg" {
     aws_subnet.public_b.id
   ]
 
-  target_group_arns = [aws_lb_target_group.lab_tg.arn]
+  target_group_arns = [aws_lb_target_group.tg[each.key].arn]
 
   launch_template {
-    id      = aws_launch_template.lab_lt.id
+    id      = aws_launch_template.lt[each.key].id
     version = "$Latest"
   }
 }
+
 
 
 

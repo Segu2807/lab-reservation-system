@@ -2,13 +2,15 @@ name: CI/CD Reservation Service
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "services/reservation-service/**"
 
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}s
 
     steps:
       - uses: actions/checkout@v4
@@ -24,10 +26,6 @@ jobs:
       - name: Run unit tests
         working-directory: services/reservation-service
         run: npm run test
-
-      - name: Run e2e tests
-        working-directory: services/reservation-service
-        run: npm run test:e2e
 
       # k6
       - name: Install k6

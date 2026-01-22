@@ -1,11 +1,14 @@
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
 export const pool = new Pool({
-  host: process.env.DB_HOST || 'postgres-auth',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASS || 'postgres',
-  database: process.env.DB_NAME || 'auth_db',
-  port: 5432
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT) || 5432,
+  ssl: process.env.DB_SSL === "true"
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 export const initDB = async () => {
@@ -19,3 +22,4 @@ export const initDB = async () => {
     )
   `);
 };
+

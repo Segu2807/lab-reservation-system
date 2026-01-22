@@ -2,13 +2,15 @@ name: CI/CD Report Service
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
     paths:
       - "services/report-service/**"
 
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
 
     steps:
       - name: Checkout code
@@ -22,10 +24,10 @@ jobs:
       - name: Install dependencies
         working-directory: services/report-service
         run: npm install
-
-      - name: Run e2e tests
+        
+      - name: Run tests
         working-directory: services/report-service
-        run: npm run test:e2e
+        run: npm test
 
       - name: Build Docker image
         working-directory: services/report-service

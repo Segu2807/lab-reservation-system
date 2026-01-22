@@ -137,3 +137,20 @@ El sistema utiliza un API Gateway como punto de entrada único:
 Esta arquitectura soporta todos los casos de uso definidos en
 `use-cases.md`, asegurando trazabilidad entre requerimientos,
 implementación y pruebas.
+
+## Design Principles Applied
+
+### 1. Single Responsibility Principle (SRP – SOLID)
+Each microservice is responsible for a single business capability (e.g., authentication, reports, reservations). This ensures that changes in one domain do not affect others.
+
+### 2. Low Coupling
+Microservices communicate through well-defined APIs and are deployed independently. There is no shared database between services, reducing dependencies and increasing scalability.
+
+### 3. High Cohesion
+Each service groups related logic such as routes, controllers, database access, and messaging within the same bounded context.
+
+### 4. KISS (Keep It Simple, Stupid)
+The system uses simple and well-known technologies (Express, REST, Docker). Each service exposes minimal endpoints with clear responsibilities.
+
+### 5. DRY (Don’t Repeat Yourself)
+Common architectural patterns (Dockerfiles, CI workflows, middleware structure) are reused across services to reduce duplication while maintaining service autonomy.

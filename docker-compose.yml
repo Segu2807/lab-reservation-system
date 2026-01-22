@@ -533,11 +533,12 @@ auth-service:
     postgres-auth:
       condition: service_healthy
   environment:
-    DB_HOST: postgres-auth
-    DB_USER: postgres
-    DB_PASS: postgres
-    DB_NAME: auth_db
-    JWT_SECRET: supersecret
+      DB_HOST: your-project.supabase.co
+      DB_USER: postgres
+      DB_PASS: your_password
+      DB_NAME: audit_db
+      DB_PORT: 5432
+      DB_SSL: "true"
   networks:
     - lab-network
 
