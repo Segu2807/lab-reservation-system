@@ -2,6 +2,12 @@ import express from "express";
 import backupRoutes from "./routes/backup.routes";
 import { startBackupCron } from "./cron/backup.cron";
 
+async function bootstrap() {
+  startBackupCron();
+}
+
+bootstrap();
+
 const app = express();
 app.use(express.json());
 

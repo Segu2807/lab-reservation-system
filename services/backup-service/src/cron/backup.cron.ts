@@ -1,17 +1,19 @@
 import cron from "node-cron";
-import { backupPostgres } from "../services/postgres.backup";
-import { uploadToS3 } from "../services/s3.upload";
+import { exec } from "child_process";
 
-export const startBackupCron = () => {
-  cron.schedule("0 */6 * * *", async () => {
-    console.log("⏰ Running scheduled backup...");
+export function startBackupCron() {
+  cron.schedule("0 2 * * *", () => {
+    console.log("⏰ Ejecutando backup programado...");
 
-    try {
-      const filePath = await backupPostgres();
-      await uploadToS3(filePath);
-      console.log("✅ Backup completed");
-    } catch (error) {
-      console.error("❌ Backup failed", error);
-    }
+    exec("sh scripts/backup.sh", (error, stdout, stderr) => {
+      if (error) {
+        console.error("❌ Error backup:", error.message);
+        return;
+      }
+      if (stderr) {
+        console.error("⚠️ STDERR:", stderr);
+      }
+      console.log("✅ Backup OK:", stdout);
+    });
   });
-};
+}

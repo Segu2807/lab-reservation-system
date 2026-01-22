@@ -517,6 +517,7 @@ services:
 
 networks:
   lab-network:
+    name: monitoring-net
     driver: bridge
     ipam:
       config:
