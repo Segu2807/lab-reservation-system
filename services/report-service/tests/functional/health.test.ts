@@ -1,4 +1,4 @@
-import * as request from "supertest";
+import request = require("supertest");
 import app from "../../src/app";
 
 describe("Report Service - Health Check", () => {

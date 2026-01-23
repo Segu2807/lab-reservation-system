@@ -1,129 +1,102 @@
+# api-gateway.tf - SIN MÉTODOS DUPLICADOS
+
 resource "aws_api_gateway_rest_api" "lab_api" {
-  name        = "lab-reservation-api"
+  name        = "lab-reservation-api-${random_id.suffix.hex}"
   description = "API Gateway para el sistema de reserva de laboratorios"
 }
 
-# ─────────────────────────────
-# RECURSOS
-# ─────────────────────────────
-
-resource "aws_api_gateway_resource" "auth" {
+# RECURSOS PRINCIPALES
+resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.lab_api.id
   parent_id   = aws_api_gateway_rest_api.lab_api.root_resource_id
-  path_part   = "auth"
+  path_part   = "{proxy+}"
 }
 
-resource "aws_api_gateway_resource" "users" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  parent_id   = aws_api_gateway_rest_api.lab_api.root_resource_id
-  path_part   = "users"
-}
-
-resource "aws_api_gateway_resource" "labs" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  parent_id   = aws_api_gateway_rest_api.lab_api.root_resource_id
-  path_part   = "labs"
-}
-
-resource "aws_api_gateway_resource" "reservations" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  parent_id   = aws_api_gateway_rest_api.lab_api.root_resource_id
-  path_part   = "reservations"
-}
-
-# ─────────────────────────────
-# MÉTODOS (ANY)
-# ─────────────────────────────
-
-resource "aws_api_gateway_method" "auth_any" {
+# MÉTODO ÚNICO PARA PROXY
+resource "aws_api_gateway_method" "proxy" {
   rest_api_id   = aws_api_gateway_rest_api.lab_api.id
-  resource_id   = aws_api_gateway_resource.auth.id
+  resource_id   = aws_api_gateway_resource.proxy.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+}
+
+# INTEGRACIÓN SIMPLE (sin {proxy} en el path)
+resource "aws_api_gateway_integration" "proxy" {
+  rest_api_id = aws_api_gateway_rest_api.lab_api.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.proxy.http_method
+
+  type                    = "HTTP_PROXY"
+  integration_http_method = "ANY"
+  uri                     = "http://${aws_lb.alb.dns_name}/{proxy}"
+  
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+  }
+  
+  depends_on = [aws_lb.alb]
+}
+
+# MÉTODO PARA ROOT
+resource "aws_api_gateway_method" "root" {
+  rest_api_id   = aws_api_gateway_rest_api.lab_api.id
+  resource_id   = aws_api_gateway_rest_api.lab_api.root_resource_id
   http_method   = "ANY"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "users_any" {
-  rest_api_id   = aws_api_gateway_rest_api.lab_api.id
-  resource_id   = aws_api_gateway_resource.users.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_method" "labs_any" {
-  rest_api_id   = aws_api_gateway_rest_api.lab_api.id
-  resource_id   = aws_api_gateway_resource.labs.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_method" "reservations_any" {
-  rest_api_id   = aws_api_gateway_rest_api.lab_api.id
-  resource_id   = aws_api_gateway_resource.reservations.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-# ─────────────────────────────
-# INTEGRACIÓN CON ALB
-# ─────────────────────────────
-
-resource "aws_api_gateway_integration" "auth_integration" {
+# INTEGRACIÓN PARA ROOT
+resource "aws_api_gateway_integration" "root" {
   rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  resource_id = aws_api_gateway_resource.auth.id
-  http_method = aws_api_gateway_method.auth_any.http_method
+  resource_id = aws_api_gateway_rest_api.lab_api.root_resource_id
+  http_method = aws_api_gateway_method.root.http_method
 
-  type                    = "HTTP"
+  type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
-  uri                     = "http://${aws_lb.alb.dns_name}/auth"
+  uri                     = "http://${aws_lb.alb.dns_name}/"
+  
+  depends_on = [aws_lb.alb]
 }
 
-resource "aws_api_gateway_integration" "users_integration" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  resource_id = aws_api_gateway_resource.users.id
-  http_method = aws_api_gateway_method.users_any.http_method
-
-  type                    = "HTTP"
-  integration_http_method = "ANY"
-  uri                     = "http://${aws_lb.alb.dns_name}/users"
-}
-
-resource "aws_api_gateway_integration" "labs_integration" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  resource_id = aws_api_gateway_resource.labs.id
-  http_method = aws_api_gateway_method.labs_any.http_method
-
-  type                    = "HTTP"
-  integration_http_method = "ANY"
-  uri                     = "http://${aws_lb.alb.dns_name}/labs"
-}
-
-resource "aws_api_gateway_integration" "reservations_integration" {
-  rest_api_id = aws_api_gateway_rest_api.lab_api.id
-  resource_id = aws_api_gateway_resource.reservations.id
-  http_method = aws_api_gateway_method.reservations_any.http_method
-
-  type                    = "HTTP"
-  integration_http_method = "ANY"
-  uri                     = "http://${aws_lb.alb.dns_name}/reservations"
-}
-
-# ─────────────────────────────
-# DEPLOY + STAGE
-# ─────────────────────────────
-
+# DEPLOYMENT
 resource "aws_api_gateway_deployment" "deploy" {
   rest_api_id = aws_api_gateway_rest_api.lab_api.id
 
-  depends_on = [
-    aws_api_gateway_integration.auth_integration,
-    aws_api_gateway_integration.users_integration,
-    aws_api_gateway_integration.labs_integration,
-    aws_api_gateway_integration.reservations_integration
-  ]
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.proxy.id,
+      aws_api_gateway_integration.proxy.id,
+      aws_lb.alb.dns_name
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
+# STAGE
 resource "aws_api_gateway_stage" "prod" {
   deployment_id = aws_api_gateway_deployment.deploy.id
   rest_api_id   = aws_api_gateway_rest_api.lab_api.id
   stage_name    = "prod"
+}
+
+# ELASTIC IP
+resource "aws_eip" "api_gateway" {
+  domain = "vpc"
+  
+  tags = {
+    Name    = "api-gateway-eip-${random_id.suffix.hex}"
+    Project = "lab-reservation"
+  }
+}
+
+# OUTPUTS DIRECTOS EN EL ARCHIVO
+output "api_gateway_url" {
+  value = "https://${aws_api_gateway_rest_api.lab_api.id}.execute-api.us-east-1.amazonaws.com/${aws_api_gateway_stage.prod.stage_name}"
 }
