@@ -13,21 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: services/audit-service/package-lock.json
-
-      - name: Install dependencies (para generar lockfile si falta)
-        working-directory: services/audit-service
-        run: |
-          if [ ! -f package-lock.json ]; then
-            echo "Generando package-lock.json..."
-            npm install
-          fi
+          fetch-depth: 0  # Trae todo el historial para mejor cache
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

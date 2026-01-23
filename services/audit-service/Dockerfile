@@ -2,27 +2,36 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json tsconfig.json ./
 
-# Instala dependencias y genera node_modules
-RUN npm install
+COPY package.json package-lock.json ./
+COPY tsconfig.json ./
+
+
+RUN npm ci --no-audit --prefer-offline
+
 
 COPY src ./src
+
+
 RUN npm run build
 
-# Fase de producción
+
 FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json ./
 
-# Instala solo dependencias de producción (forma correcta)
-RUN npm install --omit=dev
+COPY package.json package-lock.json ./
+
+
+RUN npm ci --only=production --no-audit --prefer-offline
+
 
 COPY --from=builder /app/dist ./dist
 
+
 USER node
+
 
 EXPOSE 3006
 
