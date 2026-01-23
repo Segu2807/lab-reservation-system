@@ -1,10 +1,10 @@
-name: CI/CD Approval Service
+name: CI/CD Reservation Service
 
 on:
   push:
     branches: [ "main", "develop" ]
     paths:
-      - "services/approval-service/**"
+      - "services/reservation-service/**"
 
 jobs:
   build-and-push:
@@ -17,27 +17,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20  # Usa 20 para consistencia con Dockerfile
 
-      - name: Verify project structure
-        working-directory: services/approval-service
+      - name: Install dependencies and build
+        working-directory: services/reservation-service
         run: |
-          echo "=== Verificación del proyecto ==="
-          echo "1. tsconfig.json existe:"
-          ls -la tsconfig.json
-          echo ""
-          echo "2. Archivos TypeScript en src/:"
-          find src -name "*.ts" -type f
-          echo ""
-          echo "3. Contenido de tsconfig.json:"
-          cat tsconfig.json
-
-      - name: Install dependencies
-        working-directory: services/approval-service
-        run: |
-          npm ci
-          # Prueba la compilación
-          npx tsc --project tsconfig.json --noEmit
+          # Instala dependencias
+          npm install
+          # Compila para verificar
           npm run build
 
       - name: Set up Docker Buildx
@@ -52,10 +39,10 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./services/approval-service
+          context: ./services/reservation-service
           push: true
           tags: |
-            ${{ secrets.DOCKER_USER }}/approval-service:${{ github.sha }}
-            ${{ secrets.DOCKER_USER }}/approval-service:latest
+            ${{ secrets.DOCKER_USER }}/reservation-service:${{ github.sha }}
+            ${{ secrets.DOCKER_USER }}/reservation-service:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
