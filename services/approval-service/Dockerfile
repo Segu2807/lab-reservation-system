@@ -1,4 +1,14 @@
-# services/approval-service/Dockerfile
+# Dockerfile CON package-lock.json
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY src ./src
+RUN npm run build
+
 FROM node:18-alpine
 
 WORKDIR /app
@@ -6,9 +16,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-COPY src ./src
-RUN npm run build
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 3005
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
