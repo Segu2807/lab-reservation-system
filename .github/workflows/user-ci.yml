@@ -9,9 +9,7 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # environment:  # <-- COMENTA ESTA LÍNEA TEMPORALMENTE para debugging
-    #   name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/user-service
+          file: ./services/user-service/Dockerfile  # Especifica explícitamente el Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKER_USER }}/user-service:${{ github.sha }}

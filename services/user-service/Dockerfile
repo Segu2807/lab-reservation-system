@@ -1,35 +1,23 @@
-# Dockerfile optimizado
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copia archivos de configuración
-COPY package*.json ./
-COPY tsconfig.json ./
-
-# Instala todas las dependencias (incluyendo devDependencies)
-RUN npm ci --include=dev
-
-# Copia código fuente
-COPY src ./src
-
-# Compila TypeScript
-RUN npm run build
-
-# --- Fase de producción ---
+# Dockerfile que funcionará SIN package-lock.json
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copia solo lo necesario para producción
-COPY package*.json ./
-RUN npm ci --only=production
+# Copia los archivos de configuración
+COPY package.json ./
+COPY tsconfig.json ./
 
-# Copia los archivos compilados
-COPY --from=builder /app/dist ./dist
+# Si hay package-lock.json, cópialo también
+COPY package-lock.json* ./
 
-# Usa usuario no-root por seguridad
-USER node
+# Instala dependencias - Si hay package-lock.json usa npm ci, si no npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copia el código fuente
+COPY src ./src
+
+# Compila TypeScript
+RUN npm run build
 
 EXPOSE 3001
 
