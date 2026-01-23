@@ -1,31 +1,19 @@
-# Dockerfile optimizado para report-service
-FROM node:20-alpine AS builder
+# Dockerfile SIMPLE que funcionará SIN package-lock.json
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Copia archivos de configuración
 COPY package.json tsconfig.json ./
 
-# Instala TODAS las dependencias (incluyendo devDependencies para build)
-RUN npm ci --include=dev
+# Usa npm install (no npm ci) porque no tienes package-lock.json
+RUN npm install
 
 # Copia el código fuente
 COPY src ./src
 
-# Compila TypeScript a JavaScript
+# Compila TypeScript
 RUN npm run build
-
-# --- Fase de producción ---
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copia solo lo necesario para producción
-COPY package.json ./
-RUN npm ci --only=production
-
-# Copia los archivos compilados desde el builder
-COPY --from=builder /app/dist ./dist
 
 EXPOSE 3008
 
