@@ -1,50 +1,49 @@
-🧪 Sistema de Reservación de Laboratorios – Ingeniería Civil
-📌 Descripción General
+🧪 Laboratory Reservation System - Civil Engineering
+📌 General Description
 
-Este proyecto implementa un Sistema Web de Reservación de Laboratorios para la carrera de Ingeniería Civil, desarrollado bajo una arquitectura de microservicios, utilizando Docker, Docker Compose, Next.js, Node.js, Kafka, PostgreSQL, MongoDB, Redis, y desplegado sobre AWS Academy usando Terraform (Infraestructura como Código).
+This project implements a Web-based Laboratory Reservation System for the Civil Engineering program, developed using a microservices architecture, with Docker, Docker Compose, Next.js, Node.js, Kafka, PostgreSQL, MongoDB, Redis, and deployed on AWS Academy using Terraform (Infrastructure as Code).
 
-El sistema permite:
+The system enables:
 
-Gestión de usuarios y roles
+User and role management
 
-Creación y administración de laboratorios
+Laboratory creation and administration
 
-Consulta de disponibilidad
+Availability checking
 
-Reservas de laboratorios
+Laboratory reservations
 
-Flujo de aprobación
+Approval workflows
 
-Auditoría de eventos
+Event auditing
 
-Reportes
+Reporting
 
-Notificaciones
+Notifications
 
 Backups
 
-🏗️ Arquitectura General
-🔹 Arquitectura lógica
-
+🏗️ General Architecture
+🔹 Logical Architecture
 Frontend: Next.js (React)
 
-Backend: Microservicios Node.js (Express)
+Backend: Node.js microservices (Express)
 
-Comunicación:
+Communication:
 
-HTTP REST (Frontend → API Gateway → Microservicios)
+HTTP REST (Frontend → API Gateway → Microservices)
 
-Eventos asincrónicos con Kafka
+Asynchronous events with Kafka
 
-Persistencia:
+Persistence:
 
-PostgreSQL (servicios core)
+PostgreSQL (core services)
 
-MongoDB (auditoría, logs, backups)
+MongoDB (audit logs, backups)
 
 Redis (cache)
 
-Infraestructura:
+Infrastructure:
 
 AWS EC2
 
@@ -56,17 +55,20 @@ VPC + Subnets
 
 API Gateway
 
-Orquestación: Docker Compose
+Orchestration: Docker Compose
 
 IaC: Terraform
 
-📁 Estructura del Proyecto (Monorepo)
+![System Architecture](<System Architecture.png>)
+
+📁 Project Structure (Monorepo)
+text
 lab-reservation-system
 │
 ├── apps/
-│   └── web-app/                 # Frontend Next.js
+│   └── web-app/                 # Next.js Frontend
 │
-├── services/                    # Microservicios
+├── services/                    # Microservices
 │   ├── auth-service
 │   ├── user-service
 │   ├── lab-service
@@ -79,60 +81,58 @@ lab-reservation-system
 │   └── backup-service
 │
 ├── infra/
-│   ├── terraform/               # Infraestructura AWS (IaC)
-│   ├── gateway/                 # API Gateway custom (Docker)
-│   ├── nginx/                   # Reverse proxy (opcional)
+│   ├── terraform/               # AWS Infrastructure (IaC)
+│   ├── gateway/                 # Custom API Gateway (Docker)
+│   ├── nginx/                   # Reverse proxy (optional)
 │   └── automation/
 │
-├── docker-compose.yml            # Orquestación completa local / EC2
-├── turbo.json                    # Turborepo
+├── docker-compose.yml            # Local/EC2 orchestration
+├── turbo.json                    # Turborepo config
 ├── package.json
 └── README.md
-
-🧩 Microservicios Implementados
-Servicio	Puerto	Base de Datos	Función
-auth-service	3009	PostgreSQL	Autenticación (JWT)
-user-service	3001	PostgreSQL + Redis	Gestión de usuarios
-lab-service	3002	PostgreSQL + Redis	Gestión de laboratorios
-reservation-service	3003	PostgreSQL	Reservas
-availability-service	3004	PostgreSQL	Disponibilidad
-approval-service	3005	PostgreSQL + MongoDB	Aprobaciones
-audit-service	3006	MongoDB	Auditoría
-notification-service	3007	Kafka	Notificaciones
-report-service	3008	PostgreSQL	Reportes
+🧩 Implemented Microservices
+Service	Port	Database	Function
+auth-service	3009	PostgreSQL	Authentication (JWT)
+user-service	3001	PostgreSQL + Redis	User management
+lab-service	3002	PostgreSQL + Redis	Laboratory management
+reservation-service	3003	PostgreSQL	Reservations
+availability-service	3004	PostgreSQL	Availability checking
+approval-service	3005	PostgreSQL + MongoDB	Approvals
+audit-service	3006	MongoDB	Auditing
+notification-service	3007	Kafka	Notifications
+report-service	3008	PostgreSQL	Reporting
 backup-service	3010	PostgreSQL + MongoDB + MinIO	Backups
 🖥️ Frontend (Next.js)
+The frontend is developed with Next.js (App Router) and connects to microservices via the API Gateway.
 
-El frontend está desarrollado con Next.js (App Router) y se conecta a los microservicios mediante el API Gateway.
+Implemented Routes:
 
-Rutas implementadas:
-Ruta	Función
+Route	Function
 /	Home
 /login	Login
-/dashboard	Panel principal
-/labs	Listado de laboratorios
-/labs/create	Crear laboratorio
-/availability	Consultar disponibilidad
-/reservations	Ver reservas
-/reservations/create	Crear reserva
-/approvals	Aprobaciones
-/users	Gestión de usuarios
-/notifications	Notificaciones
-/reports	Reportes
-/audits	Auditoría
-🐳 Docker y Docker Compose
+/dashboard	Main dashboard
+/labs	Laboratory listing
+/labs/create	Create laboratory
+/availability	Check availability
+/reservations	View reservations
+/reservations/create	Create reservation
+/approvals	Approvals
+/users	User management
+/notifications	Notifications
+/reports	Reports
+/audits	Auditing
+🐳 Docker and Docker Compose
+All services run using Docker and are orchestrated with docker-compose.
 
-Todos los servicios se ejecutan mediante Docker y se orquestan con docker-compose.
-
-Servicios incluidos en docker-compose:
+Services included in docker-compose:
 
 Frontend
 
 API Gateway
 
-Todos los microservicios
+All microservices
 
-PostgreSQL (múltiples instancias)
+PostgreSQL (multiple instances)
 
 MongoDB
 
@@ -142,143 +142,152 @@ Kafka + Zookeeper
 
 MinIO
 
-Levantar todo localmente:
+Run locally:
+
+bash
 docker-compose up -d
+☁️ AWS Infrastructure (Terraform)
+The infrastructure is fully deployed with Terraform, meeting AWS Academy requirements.
 
-☁️ Infraestructura en AWS (Terraform)
-
-La infraestructura se despliega completamente con Terraform, cumpliendo los requisitos de AWS Academy.
-
-Componentes creados:
+Created components:
 
 VPC
 
-Subnets públicas y privadas
+Public and private subnets
 
 Internet Gateway
 
 Security Groups
 
-Bastion Host (acceso seguro)
+Bastion Host (secure access)
 
-EC2 privada (Docker + Microservicios)
+Private EC2 (Docker + Microservices)
 
 Application Load Balancer
 
 API Gateway
 
-Outputs automáticos
+Automatic outputs
 
-Despliegue:
+Deployment:
+
+bash
 terraform init
 terraform apply
+🔐 Security
+Private EC2 without direct Internet access
 
-🔐 Seguridad
+Bastion Host for SSH access
 
-EC2 privada sin acceso directo a Internet
+Controlled Security Groups
 
-Bastion Host para acceso SSH
+JWT for authentication
 
-Security Groups controlados
+Network segregation (VPC)
 
-JWT para autenticación
-
-Separación de redes (VPC)
-
-🔄 Flujo de Comunicación
-Usuario
+🔄 Communication Flow
+text
+User
  → Frontend (Next.js)
  → API Gateway
  → Application Load Balancer
- → EC2 privada (Docker)
- → Microservicios
- → Bases de Datos
-
+ → Private EC2 (Docker)
+ → Microservices
+ → Databases
 📦 Backups
+The backup-service:
 
-El backup-service:
+Generates PostgreSQL dumps
 
-Genera dumps de PostgreSQL
+Stores metadata in MongoDB
 
-Guarda metadata en MongoDB
+Uploads files to MinIO (S3 compatible)
 
-Sube archivos a MinIO (S3 compatible)
+Executable via REST endpoint
 
-Ejecutable vía endpoint REST
+📊 Observability
+Centralized auditing (MongoDB)
 
-📊 Observabilidad
+Per-microservice logs
 
-Auditoría centralizada (MongoDB)
+Event streaming with Kafka
 
-Logs por microservicio
+🧪 Testing
+Check active services:
 
-Eventos con Kafka
-
-🧪 Pruebas
-Ver servicios activos:
+bash
 docker ps
+Test API:
 
-Probar API:
+bash
 curl http://ALB_DNS/labs
-
-🎓 Contexto Académico
-
-## CI/CD Strategy
-
+🎓 Academic Context
+CI/CD Strategy
 This project uses GitHub Actions for Continuous Integration.
 Each microservice has its own CI pipeline that:
 
-- Installs dependencies
-- Runs tests
-- Builds Docker image
-- Pushes image to Docker Hub
+Installs dependencies
+
+Runs tests
+
+Builds Docker image
+
+Pushes image to Docker Hub
 
 Due to AWS Academy restrictions, Continuous Deployment is performed manually on EC2 instances using Docker and documented deployment scripts. Infrastructure is defined using Terraform.
 
 This approach follows DevOps best practices while respecting the limitations of the academic environment.
 
-Proyecto desarrollado para la asignatura Distribuida / Arquitectura de Software / DevOps, aplicando:
+Project developed for Distributed Systems / Software Architecture / DevOps courses, applying:
 
-Microservicios
+Microservices
 
-Infraestructura como Código
+Infrastructure as Code
 
-Contenedores
+Containerization
 
 Cloud Computing
 
-Buenas prácticas profesionales
+Professional best practices
 
-# LAB RESERVATION SYSTEM - INFRAESTRUCTURA AWS
+🏗️ LAB RESERVATION SYSTEM - AWS INFRASTRUCTURE
+✅ STATUS: SUCCESSFULLY DEPLOYED
+📊 ARCHITECTURE SUMMARY:
+API Gateway: 1 regional endpoint
 
-## ✅ ESTADO: DESPLEGADO EXITOSAMENTE
+Load Balancer: 1 ALB balancing 4 services
 
-## 📊 RESUMEN DE ARQUITECTURA:
-- **API Gateway:** 1 endpoint regional
-- **Load Balancer:** 1 ALB balanceando 4 servicios
-- **Servicios:** 4 microservicios (lab, auth, user, reservation)
-- **Instancias:** 4 EC2 + 1 bastion
-- **Red:** VPC completa con 2 subnets públicas
-- **Seguridad:** 3 Security Groups configurados
+Services: 4 microservices (lab, auth, user, reservation)
 
-## 🔗 ACCESO:
-- **API:** https://3s8ncset55.execute-api.us-east-1.amazonaws.com/prod
-- **Bastion:** 98.92.222.217 (SSH)
-- **ALB:** lab-alb-9bf9796e-1657069482.us-east-1.elb.amazonaws.com
+Instances: 4 EC2 + 1 bastion
 
-## 🎯 OBJETIVOS CUMPLIDOS:
-1. ✅ Infraestructura como Código con Terraform
-2. ✅ API Gateway con Elastic IP
-3. ✅ Microservicios desplegados con Auto Scaling
-4. ✅ Documentación para CloudFlare
-5. ✅ Pruebas de funcionamiento
+Network: Full VPC with 2 public subnets
 
-👨‍💻 Autor
+Security: 3 Security Groups configured
 
-Nombre: Segundo Tipanquiza
-Carrera: Ingeniería en Sistemas
-Universidad: (completar)
-Año: 2026
+🔗 ACCESS:
+API: https://3s8ncset55.execute-api.us-east-1.amazonaws.com/prod
+
+Bastion: 98.92.222.217 (SSH)
+
+ALB: lab-alb-9bf9796e-1657069482.us-east-1.elb.amazonaws.com
+
+🎯 ACHIEVED OBJECTIVES:
+✅ Infrastructure as Code with Terraform
+
+✅ API Gateway with Elastic IP
+
+✅ Microservices deployed with Auto Scaling
+
+✅ Documentation for CloudFlare
+
+✅ Functionality testing
+
+👨‍💻 Author
+Name: Segundo Tipanquiza
+Major: Systems Engineering
+University: Central University of Ecuador
+Year: 2026
 
 # Turborepo starter
 
