@@ -249,6 +249,30 @@ Cloud Computing
 
 Buenas prácticas profesionales
 
+# LAB RESERVATION SYSTEM - INFRAESTRUCTURA AWS
+
+## ✅ ESTADO: DESPLEGADO EXITOSAMENTE
+
+## 📊 RESUMEN DE ARQUITECTURA:
+- **API Gateway:** 1 endpoint regional
+- **Load Balancer:** 1 ALB balanceando 4 servicios
+- **Servicios:** 4 microservicios (lab, auth, user, reservation)
+- **Instancias:** 4 EC2 + 1 bastion
+- **Red:** VPC completa con 2 subnets públicas
+- **Seguridad:** 3 Security Groups configurados
+
+## 🔗 ACCESO:
+- **API:** https://3s8ncset55.execute-api.us-east-1.amazonaws.com/prod
+- **Bastion:** 98.92.222.217 (SSH)
+- **ALB:** lab-alb-9bf9796e-1657069482.us-east-1.elb.amazonaws.com
+
+## 🎯 OBJETIVOS CUMPLIDOS:
+1. ✅ Infraestructura como Código con Terraform
+2. ✅ API Gateway con Elastic IP
+3. ✅ Microservicios desplegados con Auto Scaling
+4. ✅ Documentación para CloudFlare
+5. ✅ Pruebas de funcionamiento
+
 👨‍💻 Autor
 
 Nombre: Segundo Tipanquiza

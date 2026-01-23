@@ -32,10 +32,9 @@ variable "db_password" {
 
 variable "ami_id" {
   description = "AMI ID for EC2 instances"
-  default     = "ami-0c02fb55956c7d316"  # Amazon Linux 2 us-east-1
+  default     = "ami-0c02fb55956c7d316"  
 }
 
-# Nuevas variables
 variable "instance_type" {
   description = "EC2 instance type"
   default     = "t2.micro"
@@ -54,4 +53,16 @@ variable "max_size" {
 variable "desired_capacity" {
   description = "Desired number of instances in ASG"
   default     = 1
+}
+
+# variables.tf - Agregar estas variables
+
+variable "cloudflare_domain" {
+  description = "Dominio para CloudFlare (ej: api.lab-reservation.qa)"
+  default     = "api.lab-reservation.qa"  # CAMBIA ESTO
+}
+
+variable "environment" {
+  description = "Entorno de despliegue"
+  default     = "qa"
 }

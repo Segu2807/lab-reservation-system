@@ -86,13 +86,21 @@ resource "aws_api_gateway_stage" "prod" {
   stage_name    = "prod"
 }
 
-# ELASTIC IP
+# ELASTIC IP - Asegúrate que tenga esto:
 resource "aws_eip" "api_gateway" {
   domain = "vpc"
   
   tags = {
-    Name    = "api-gateway-eip-${random_id.suffix.hex}"
-    Project = "lab-reservation"
+    Name        = "api-gateway-eip-${random_id.suffix.hex}"
+    Project     = "lab-reservation"
+    Environment = "qa"
+    Purpose     = "CloudFlare-Origin"
+    ManagedBy   = "Terraform"
+  }
+  
+  # Esto asegura que no se destruya accidentalmente
+  lifecycle {
+    prevent_destroy = false  # Cambia a true en producción
   }
 }
 
