@@ -2,13 +2,10 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY package.json tsconfig.json ./
 
-# Instala dependencias de compilación si necesitas
-RUN apk add --no-cache python3 make g++
-
-RUN npm ci
+# Instala dependencias y genera node_modules
+RUN npm install
 
 COPY src ./src
 RUN npm run build
@@ -18,14 +15,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Instala solo dependencias de producción
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package.json ./
 
-# Copia los archivos compilados del builder
+# Instala solo dependencias de producción (forma correcta)
+RUN npm install --omit=dev
+
 COPY --from=builder /app/dist ./dist
 
-# Usa el usuario node por seguridad
 USER node
 
 EXPOSE 3006
