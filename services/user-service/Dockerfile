@@ -1,17 +1,13 @@
-# Dockerfile que funcionará SIN package-lock.json
+# Dockerfile SIMPLE y FUNCIONAL
 FROM node:20-alpine
 
 WORKDIR /app
 
 # Copia los archivos de configuración
-COPY package.json ./
-COPY tsconfig.json ./
+COPY package.json package-lock.json tsconfig.json ./
 
-# Si hay package-lock.json, cópialo también
-COPY package-lock.json* ./
-
-# Instala dependencias - Si hay package-lock.json usa npm ci, si no npm install
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Instala dependencias
+RUN npm ci
 
 # Copia el código fuente
 COPY src ./src

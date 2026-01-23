@@ -27,7 +27,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/user-service
-          file: ./services/user-service/Dockerfile  # Especifica explícitamente el Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKER_USER }}/user-service:${{ github.sha }}
