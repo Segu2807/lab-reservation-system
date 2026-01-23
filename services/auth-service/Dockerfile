@@ -1,23 +1,20 @@
-# Imagen base
-FROM node:18-alpine
+# Dockerfile optimizado CON package-lock.json
+FROM node:20-alpine
 
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Copia archivos de configuración INCLUYENDO package-lock.json
+COPY package.json package-lock.json tsconfig.json ./
 
-# Instalar dependencias
-RUN npm install
+# Usa npm ci (más rápido y reproducible) porque tienes package-lock.json
+RUN npm ci
 
-# Copiar el resto del código
-COPY . .
+# Copia el código fuente
+COPY src ./src
 
-# Compilar el proyecto
+# Compila TypeScript
 RUN npm run build
 
-# Exponer puerto
-EXPOSE 3000
+EXPOSE 3009
 
-# Comando de inicio
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,47 @@
+{
+  "name": "Reservation Created Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reservation-created",
+        "responseMode": "onReceived"
+      },
+      "id": "Webhook",
+      "name": "Reservation Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message",
+              "value": "Nueva reserva creada para laboratorio {{$json.lab_id}} en fecha {{$json.date}}"
+            }
+          ]
+        }
+      },
+      "id": "Set",
+      "name": "Prepare Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [550, 300]
+    }
+  ],
+  "connections": {
+    "Reservation Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
