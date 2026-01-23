@@ -9,31 +9,39 @@ on:
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
+    # Si quieres usar Environment Secrets, descomenta esta línea:
+    # environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'qa' }}
+    
+    # Si usas Environment Secrets, los secrets se cargarán automáticamente
+    # Si usas Repository Secrets, no necesitas la línea environment
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: 20  # Cambié de 18 a 20 para coincidir con tu Dockerfile
+          # Si usas Repository Secrets:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+          
+          # Si usas Environment Secrets:
+          # username: ${{ vars.DOCKER_USER }}
+          # password: ${{ vars.DOCKER_PASS }}
 
-      - name: Install dependencies
+      - name: Build Docker image
         working-directory: services/audit-service
-        run: npm ci  # Cambié de npm install a npm ci (más confiable para CI/CD)
-
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
-
-      - name: Build and push Docker image
-        working-directory: services/audit-service
-        env:
-          DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USER }}/audit-service
-          GIT_SHA: ${{ github.sha }}
         run: |
-          docker build -t $DOCKER_IMAGE_NAME:$GIT_SHA -t $DOCKER_IMAGE_NAME:latest .
-          docker push $DOCKER_IMAGE_NAME:$GIT_SHA
-          docker push $DOCKER_IMAGE_NAME:latest
+          docker build \
+            --tag ${{ secrets.DOCKER_USER }}/audit-service:${{ github.sha }} \
+            --tag ${{ secrets.DOCKER_USER }}/audit-service:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKER_USER }}/audit-service:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USER }}/audit-service:latest
