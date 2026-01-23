@@ -19,12 +19,25 @@ jobs:
         with:
           node-version: 18
 
+      - name: Verify project structure
+        working-directory: services/approval-service
+        run: |
+          echo "=== Verificación del proyecto ==="
+          echo "1. tsconfig.json existe:"
+          ls -la tsconfig.json
+          echo ""
+          echo "2. Archivos TypeScript en src/:"
+          find src -name "*.ts" -type f
+          echo ""
+          echo "3. Contenido de tsconfig.json:"
+          cat tsconfig.json
+
       - name: Install dependencies
         working-directory: services/approval-service
         run: |
-          # Instala dependencias localmente para verificar
-          npm install
-          # Compila para verificar
+          npm ci
+          # Prueba la compilación
+          npx tsc --project tsconfig.json --noEmit
           npm run build
 
       - name: Set up Docker Buildx
