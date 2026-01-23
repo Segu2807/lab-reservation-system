@@ -265,13 +265,6 @@ Network: Full VPC with 2 public subnets
 
 Security: 3 Security Groups configured
 
-🔗 ACCESS:
-API: https://3s8ncset55.execute-api.us-east-1.amazonaws.com/prod
-
-Bastion: 98.92.222.217 (SSH)
-
-ALB: lab-alb-9bf9796e-1657069482.us-east-1.elb.amazonaws.com
-
 🎯 ACHIEVED OBJECTIVES:
 ✅ Infrastructure as Code with Terraform
 
