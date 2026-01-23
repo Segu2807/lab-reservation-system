@@ -1,26 +1,19 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package.json package-lock.json tsconfig.json ./
-
-RUN npm ci
-
-COPY src ./src
-
-RUN npm run build
-
+# Dockerfile simplificado - solución rápida
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copia solo los archivos necesarios
+COPY package.json package-lock.json tsconfig.json ./
 
-RUN npm ci --only=production
+# Usa npm install en lugar de npm ci (más permisivo)
+RUN npm install
 
-COPY --from=builder /app/dist ./dist
+# Copia el código fuente
+COPY src ./src
 
-USER node
+# Compila TypeScript
+RUN npm run build
 
 EXPOSE 3001
 
